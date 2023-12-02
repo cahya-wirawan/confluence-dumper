@@ -16,15 +16,14 @@ Confluence-dumper is a Python project to export spaces, pages and attachments
 
 from __future__ import print_function
 import sys
-import codecs
 
-import os
-import shutil
 from lxml import html
 from lxml.etree import XMLSyntaxError
 
 import utils
 import settings
+
+from pathlib import Path
 
 
 CONFLUENCE_DUMPER_VERSION = '1.0.0'
@@ -70,10 +69,10 @@ def derive_downloaded_file_name(download_url):
 
 def provide_unique_file_name(duplicate_file_names, file_matching, file_title, is_folder=False,
                              explicit_file_extension=None):
-    """ Provides an unique AND sanitized file name for a given page title. Confluence does not allow the same page title
+    """ Provides a unique AND sanitized file name for a given page title. Confluence does not allow the same page title
     in one particular space but collisions are possible after filesystem sanitization.
 
-    :param duplicate_file_names: A dict in the structure {'<sanitized filename>': amount of duplicates}
+    :param duplicate_file_names: A dict in the structure { '<sanitized filename>': amount of duplicates }
     :param file_matching: A dict in the structure {'<file title>': '<used offline filename>'}
     :param file_title: File title which is used to generate the unique file name
     :param is_folder: (optional) Flag which states whether the file is a folder
@@ -136,7 +135,7 @@ def handle_html_references(html_content, page_duplicate_file_names, page_file_ma
             print("LINK - "+link_element.attrib['href'])
             try:
                 page_title = link_element.attrib['href'].split('/')[4]
-            except:
+            except KeyError:
                 page_title = link_element.attrib['href'].split('/')[3]
 
             page_title = page_title.replace('+', ' ')
@@ -159,7 +158,7 @@ def handle_html_references(html_content, page_duplicate_file_names, page_file_ma
         file_url = link_element.attrib['href']
         file_name = derive_downloaded_file_name(file_url)
         relative_file_path = '%s/%s' % (settings.DOWNLOAD_SUB_FOLDER, file_name)
-        #link_element.attrib['href'] = utils.encode_url(relative_file_path)
+        # link_element.attrib['href'] = utils.encode_url(relative_file_path)
         link_element.attrib['href'] = relative_file_path
 
     # Fix file paths for img tags
@@ -176,7 +175,7 @@ def handle_html_references(html_content, page_duplicate_file_names, page_file_ma
         img_element.attrib['src'] = relative_file_path
 
         # Add alt attribute if it does not exist yet
-        if not 'alt' in img_element.attrib.keys():
+        if 'alt' not in img_element.attrib.keys():
             img_element.attrib['alt'] = relative_file_path
 
     return html.tostring(html_tree)
@@ -195,7 +194,7 @@ def download_file(clean_url, download_folder, downloaded_file_name, depth=0, err
     downloaded_file_path = '%s/%s' % (download_folder, downloaded_file_name)
 
     # Download file if it does not exist yet
-    if not os.path.exists(downloaded_file_path):
+    if not Path(downloaded_file_path).exists():
         absolute_download_url = '%s%s' % (settings.CONFLUENCE_BASE_URL, clean_url)
         print('%sDOWNLOAD: %s' % ('\t'*(depth+1), downloaded_file_name))
         try:
@@ -254,7 +253,7 @@ def download_attachment(download_url, download_folder, attachment_id, attachment
 
 
 def create_html_attachment_index(attachments):
-    """ Creates a HTML list for a list of attachments.
+    """ Creates an HTML list for a list of attachments.
 
     :param attachments: List of attachments.
     :returns: Attachment list as HTML.
@@ -424,15 +423,13 @@ def main():
     """ Main function to start the confluence-dumper. """
 
     # Configure console for unicode output via stdout/stderr
-    #sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
-    #sys.stderr = codecs.getwriter('utf-8')(sys.stderr)
+    # sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+    # sys.stderr = codecs.getwriter('utf-8')(sys.stderr)
 
     # Welcome output
     print_welcome_output()
-    # Delete old export
-    if os.path.exists(settings.EXPORT_FOLDER):
-        shutil.rmtree(settings.EXPORT_FOLDER)
-    os.makedirs(settings.EXPORT_FOLDER)
+    # create export folder
+    Path(settings.EXPORT_FOLDER).mkdir(parents=True, exist_ok=True)
 
     # Read HTML template
     template_file = open(settings.TEMPLATE_FILE)
@@ -470,9 +467,12 @@ def main():
         space_folder_name = provide_unique_file_name(duplicate_space_names, space_matching, space, is_folder=True)
         space_folder = '%s/%s' % (settings.EXPORT_FOLDER, space_folder_name)
         try:
-            os.makedirs(space_folder)
+            if Path(space_folder).exists():
+                continue
+            Path(space_folder).mkdir(parents=True, exist_ok=True)
             download_folder = '%s/%s' % (space_folder, settings.DOWNLOAD_SUB_FOLDER)
-            os.makedirs(download_folder)
+            # create download folder
+            Path(download_folder).mkdir(parents=True, exist_ok=True)
 
             space_url = '%s/rest/api/space/%s?expand=homepage' % (settings.CONFLUENCE_BASE_URL, space)
             response = utils.http_get(space_url, auth=settings.HTTP_AUTHENTICATION,
