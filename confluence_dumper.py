@@ -135,7 +135,7 @@ def handle_html_references(html_content, page_duplicate_file_names, page_file_ma
             print("LINK - "+link_element.attrib['href'])
             try:
                 page_title = link_element.attrib['href'].split('/')[4]
-            except KeyError:
+            except IndexError:
                 page_title = link_element.attrib['href'].split('/')[3]
 
             page_title = page_title.replace('+', ' ')
