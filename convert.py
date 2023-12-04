@@ -31,11 +31,28 @@ def main():
             html = html.replace("&#160;", " ")
             cleaner = lxml.html.clean.Cleaner(style=True)
             doc = lxml.html.fromstring(html)
+            uls = doc.xpath("//td/ul")
+            ps = doc.xpath("//td//p")
+            for p in ps:
+                p_string = lxml.html.tostring(p, encoding='unicode')
+                p_string = p_string.replace("<p>", "").replace("</p>", "#br#")
+                p_string = f"<div>{p_string}</div"
+                td = p.getparent()
+                td.remove(p)
+                td.append(lxml.html.fromstring(p_string))
+            for ul in uls:
+                ul_string = lxml.html.tostring(ul, encoding='unicode')
+                ul_string = ul_string.replace("<li>", "#li+").replace("</li>", "#li-").replace("<ul>", "#ul+").replace("</ul>", "#ul-")
+                ul_string = f"<div>{ul_string}</div"
+                td = ul.getparent()
+                td.remove(ul)
+                td.append(lxml.html.fromstring(ul_string))
             doc = cleaner.clean_html(doc)
-            # doc = doc.text_content()
             doc = lxml.html.tostring(doc, encoding='unicode')
             md = markdownify(doc, heading_style="ATX")
             md = md[:md.find("## Attachments")]
+            md = md.replace("#li+", "<li>").replace("#li-", "</li>").replace("#ul+", "<ul>").replace("#ul-", "</ul>")
+            md = md.replace("#br#", "<br>")
             md_len = len(md)
             if md_len < 1024:
                 continue
