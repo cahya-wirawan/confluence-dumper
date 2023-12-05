@@ -134,9 +134,13 @@ def handle_html_references(html_content, page_duplicate_file_names, page_file_ma
         if not link_element.get('class'):
             print("LINK - "+link_element.attrib['href'])
             try:
-                page_title = link_element.attrib['href'].split('/')[4]
+                href_splitted = link_element.attrib['href'].split('/')
+                if len(href_splitted) > 3:
+                    page_title = href_splitted[-1]
+                else:
+                    page_title = link_element.attrib['title']
             except IndexError:
-                page_title = link_element.attrib['href'].split('/')[3]
+                page_title = "Unknown Title"
 
             page_title = page_title.replace('+', ' ')
             decoded_page_title = utils.decode_url(page_title)
