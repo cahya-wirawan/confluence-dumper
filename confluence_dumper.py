@@ -141,6 +141,8 @@ def handle_html_references(html_content, page_duplicate_file_names, page_file_ma
                     page_title = link_element.attrib['title']
             except IndexError:
                 page_title = "Unknown Title"
+            except KeyError:
+                page_title = "Unknown Title"
 
             page_title = page_title.replace('+', ' ')
             decoded_page_title = utils.decode_url(page_title)
