@@ -214,7 +214,8 @@ def download_file(clean_url, download_folder, downloaded_file_name, depth=0, err
                 error_print('%sERROR: %s' % ('\t'*(depth+2), e))
             else:
                 print('%sWARNING: %s' % ('\t'*(depth+2), e))
-
+    else:
+        print(f"Skip {downloaded_file_path}")
     return downloaded_file_path
 
 
