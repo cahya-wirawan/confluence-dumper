@@ -236,6 +236,9 @@ def download_attachment(download_url, download_folder, attachment_id, attachment
     downloaded_thumbnail_file_name = derive_downloaded_file_name(clean_thumbnail_url)
     downloaded_thumbnail_file_name = provide_unique_file_name(attachment_duplicate_file_names, attachment_file_matching,
                                                               downloaded_thumbnail_file_name)
+    if utils.is_file_format(downloaded_file_name, settings.CONFLUENCE_EXCLUDED_FORMATS):
+        print(f"Ignore {downloaded_thumbnail_file_name}")
+        return None
     if utils.is_file_format(downloaded_thumbnail_file_name, settings.CONFLUENCE_THUMBNAIL_FORMATS):
         # TODO: Confluence creates thumbnails always as PNGs but does not change the file extension to .png.
         download_file(clean_thumbnail_url, download_folder, downloaded_thumbnail_file_name, depth=depth,
@@ -330,7 +333,8 @@ def fetch_page_recursively(page_id, folder_path, download_folder, html_template,
                 attachment_info = download_attachment(download_url, download_folder, attachment_id,
                                                       attachment_duplicate_file_names, attachment_file_matching,
                                                       depth=depth+1)
-                path_collection['child_attachments'].append(attachment_info)
+                if attachment_info:
+                    path_collection['child_attachments'].append(attachment_info)
 
             if 'next' in response['_links'].keys():
                 page_url = response['_links']['next']
