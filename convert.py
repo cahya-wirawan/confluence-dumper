@@ -57,6 +57,7 @@ def main():
             if md_len < 1024:
                 continue
             md = md[md.find("# "):]
+            md = re.sub(r"\n{3,}", "\n\n", md)
             md_file.write_text(md)
 
     print("Done")
