@@ -233,7 +233,7 @@ def download_attachment(download_url, download_folder, attachment_id, attachment
     downloaded_file_name = derive_downloaded_file_name(clean_url)
     downloaded_file_name = provide_unique_file_name(attachment_duplicate_file_names, attachment_file_matching,
                                                     downloaded_file_name)
-    if utils.is_file_format(downloaded_file_name, settings.CONFLUENCE_EXCLUDED_FORMATS):
+    if not utils.is_file_format(downloaded_file_name, settings.CONFLUENCE_WHITELISTED_FORMATS):
         print(f"Ignore {downloaded_file_name}")
         return None
     downloaded_file_path = download_file(download_url, download_folder, downloaded_file_name, depth=depth)

@@ -146,5 +146,5 @@ def is_file_format(file_name, file_extensions):
     :param file_extensions: File extensions as a list
     :returns: True if the list contains the extension of the given file_name
     """
-    file_extension = file_name.split('.')[-1]
+    file_extension = file_name.split('.')[-1].lower()
     return file_extension in file_extensions
