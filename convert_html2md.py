@@ -10,6 +10,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-o', '--output_dir', default="markdown")
+    parser.add_argument('-f', '--force', action=argparse.BooleanOptionalAction, default=False)
     args = parser.parse_args()
 
     output_dir = args.output_dir
@@ -26,7 +27,7 @@ def main():
             md_file = Path(re.sub(r'^export', f"{output_dir}", str(file)))
             md_file = md_file.with_suffix(".md")
             md_file.parent.mkdir(parents=True, exist_ok=True)
-            if md_file.exists():
+            if md_file.exists() and not args.force:
                 continue
             html = html.replace("&#160;", " ")
             cleaner = lxml.html.clean.Cleaner(style=True)
